@@ -23,7 +23,7 @@ final class BurndownActionMenuEventListener extends PhabricatorEventListener {
 
     $actions = null;
     if ($object instanceof PhabricatorProject &&
-      stripos($object->getName(), '§') !== false) {
+      stripos($object->getName(), SprintConstants::MAGIC_WORD) !== false) {
       $actions = $this->renderUserItems($event);
     }
 
