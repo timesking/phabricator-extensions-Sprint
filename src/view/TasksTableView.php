@@ -197,6 +197,10 @@ final class TasksTableView {
       $depth_indent .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
     }
 
+    $ownertext = 'error'
+    if (is_object($owner)) {
+        $ownertext = $task->getOwnerPHID() ? $owner->renderLink() : 'none assigned'
+    }
     // Build the row
     $output[] = array(
         phutil_safe_html($depth_indent . phutil_tag(
@@ -210,7 +214,7 @@ final class TasksTableView {
                 $task->getMonogram() . ': ' . $task->getTitle()
             ) . ($repeat ? '&nbsp;&nbsp;<em title="This task is a child of more than one task in this list. Children are only shown on ' .
                 'the first occurance">[Repeat]</em>' : '')),
-        $task->getOwnerPHID() ? $owner->renderLink() : 'none assigned',
+        $ownertext,
         $priority_name->getTaskPriorityName($task->getPriority()),
         $points,
         $status,
