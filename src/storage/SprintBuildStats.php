@@ -53,6 +53,18 @@ final class SprintBuildStats {
       }
       $previous = $current;
     }
+
+    #Merge before to the sprint start day
+    if (array_key_exists('before', $dates)) {
+      $current = $dates[1];
+      $previous = $dates['before'];
+      $current->sumTasksTotal($dates[1], $previous);
+      $current->sumPointsTotal($current, $previous);
+      $current->sumTasksRemaining($current, $previous);
+      $current->sumPointsRemaining ($current, $previous);
+      unset($dates['before']);
+    }
+
     return $dates;
   }
 
