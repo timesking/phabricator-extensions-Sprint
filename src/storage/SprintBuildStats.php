@@ -28,6 +28,9 @@ final class SprintBuildStats {
 
   public function buildTimeSeries($start, $end) {
     $timeseries = array_keys($this->buildDateArray ($start, $end, $this->timezone));
+    // if (array_key_exists('before', $timeseries)) {
+    //   unset($timeseries['before']);
+    // }
     return $timeseries;
   }
 
@@ -55,23 +58,28 @@ final class SprintBuildStats {
     }
 
     #Merge before to the sprint start day
-    $firstkey = null;
-    foreach ($dates as $key => $date) {
-      if ($key == 'before') {
-        continue;
-      }
-      $firstkey = $key;
-      break;
-    }
-    if (array_key_exists('before', $dates)) {
-      $current = $dates[$firstkey];
-      $previous = $dates['before'];
-      $current->sumTasksTotal($dates[1], $previous);
-      $current->sumPointsTotal($current, $previous);
-      $current->sumTasksRemaining($current, $previous);
-      $current->sumPointsRemaining ($current, $previous);
-      unset($dates['before']);
-    }
+    // $firstkey = null;
+    // foreach ($dates as $key => $date) {
+    //   if ($key == 'before') {
+    //     continue;
+    //   }
+    //   $firstkey = $key;
+    //   break;
+    // }
+    // if (array_key_exists('before', $dates)) {
+    //   $current = $dates[$firstkey];
+    //   $previous = $dates['before'];
+      // $current->sumTasksTotal($current, $previous);
+      // $current->sumPointsTotal($current, $previous);
+      // $current->sumTasksRemaining($current, $previous);
+      // $current->sumPointsRemaining ($current, $previous);
+      // unset($dates['before']);
+      // $previous->setTasksTotal(0);
+      // $previous->setPointsTotal(0);
+      // $previous->setTasksRemaining(0);
+      // $previous->setPointsRemaining(0);
+    // }
+//     unset($dates['before']);
 
     return $dates;
   }
