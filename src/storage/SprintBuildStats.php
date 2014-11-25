@@ -8,12 +8,12 @@ final class SprintBuildStats {
     return $this->timezone;
   }
 
-  public function buildDateArray($start, $end, $timezone) {
+  public function buildDateArray($start, $end, DateTimeZone $timezone) {
 
     $period = new DatePeriod(
-        id(new DateTime("@" . $start))->setTime(2, 0)->setTimezone($timezone),
+        id(new DateTime("@" . $start, $timezone))->setTime(2, 0),
         new DateInterval('P1D'), // 1 day interval
-        id(new DateTime("@" . $end))->modify('+1 day')->setTime(17, 0)->setTimezone($timezone));
+        id(new DateTime("@" . $end, $timezone))->modify('+1 day')->setTime(17, 0));
 
 
     $dates = array('before' =>$this->getBurndownDate('Before Sprint'));
@@ -27,10 +27,8 @@ final class SprintBuildStats {
   }
 
   public function buildTimeSeries($start, $end) {
-    $timeseries = array_keys($this->buildDateArray ($start, $end, $this->timezone));
-    // if (array_key_exists('before', $timeseries)) {
-    //   unset($timeseries['before']);
-    // }
+    $timezone = $this->timezone;
+    $timeseries = array_keys($this->buildDateArray ($start, $end, $timezone));
     return $timeseries;
   }
 
