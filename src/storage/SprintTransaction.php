@@ -149,7 +149,7 @@ final class SprintTransaction  {
 
       // If the task is closed, adjust completed points as well
       if (isset($this->task_statuses[$task_phid]) && $this->task_statuses[$task_phid] == 'closed') {
-        $this->task_points[$task_phid] = $xaction->getNewValue() - $xaction->getOldValue();
+        // $this->task_points[$task_phid] = $xaction->getNewValue() - $xaction->getOldValue();
         $dates[$date]->setPointsClosedToday($this->task_points[$task_phid]);
       }
     }
