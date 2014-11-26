@@ -54,6 +54,10 @@ final class SprintApplication extends PhabricatorApplication {
               => 'PhabricatorProjectEditPictureController',
               'icon/(?P<id>[1-9]\d*)/'
               => 'PhabricatorProjectEditIconController',
+              'board/task/edit/(?P<id>[1-9]\d*)/'
+              =>  'SprintBoardTaskEditController',
+              'board/task/create/'
+              => 'SprintBoardTaskEditController',
               'board/(?P<id>[1-9]\d*)/' .
               '(?P<filter>filter/)?' .
               '(?:query/(?P<queryKey>[^/]+)/)?'
@@ -84,6 +88,18 @@ final class SprintApplication extends PhabricatorApplication {
         ProjectCanLockProjectsCapability::CAPABILITY => array(
             'default' => PhabricatorPolicies::POLICY_ADMIN,
         ),
+        ManiphestDefaultViewCapability::CAPABILITY => array(
+            'caption' => pht('Default view policy for newly created tasks.'),
+        ),
+        ManiphestDefaultEditCapability::CAPABILITY => array(
+            'caption' => pht('Default edit policy for newly created tasks.'),
+        ),
+        ManiphestEditStatusCapability::CAPABILITY => array(),
+        ManiphestEditAssignCapability::CAPABILITY => array(),
+        ManiphestEditPoliciesCapability::CAPABILITY => array(),
+        ManiphestEditPriorityCapability::CAPABILITY => array(),
+        ManiphestEditProjectsCapability::CAPABILITY => array(),
+        ManiphestBulkEditCapability::CAPABILITY => array(),
     );
   }
 }

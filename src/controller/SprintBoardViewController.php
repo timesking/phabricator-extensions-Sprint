@@ -273,10 +273,12 @@ final class SprintBoardViewController
           $owner = $this->handles[$task->getOwnerPHID()];
         }
         $can_edit = idx($task_can_edit_map, $task->getPHID(), false);
+        $task_node_id = celerity_generate_unique_node_id();
         $cards->addItem(id(new SprintBoardTaskCard())
           ->setViewer($viewer)
           ->setProject($project)
           ->setTask($task)
+          ->setNode($task_node_id)
           ->setOwner($owner)
           ->setCanEdit($can_edit)
           ->getItem());

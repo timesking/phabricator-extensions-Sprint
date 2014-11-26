@@ -164,7 +164,7 @@ final class SprintBoardMoveController
         ->withPHIDs(array($object->getOwnerPHID()))
         ->executeOne();
     }
-    $card = id(new ProjectBoardTaskCard())
+    $card = id(new SprintBoardTaskCard())
       ->setViewer($viewer)
       ->setTask($object)
       ->setOwner($owner)

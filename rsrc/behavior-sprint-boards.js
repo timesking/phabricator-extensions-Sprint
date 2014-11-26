@@ -19,9 +19,13 @@ JX.behavior('sprint-boards', function(config) {
         }
 
         var sum = 0;
-        for (var ii = 0; ii < cards.length; ii++) {
-            // TODO: Allow this to be computed in some more clever way.
-            sum += 1;
+        var ii;
+        var ii_item;
+        items = cards;
+        for (ii = 0; ii < items.length; ii++) {
+            ii_item = items[ii];
+            ii_item_points = JX.Stratcom.getData(ii_item).points;
+            sum += Number(ii_item_points);
         }
 
         // TODO: This is a little bit hacky, but we don't have a PHUIX version of
@@ -34,7 +38,6 @@ JX.behavior('sprint-boards', function(config) {
             display_value = sum + ' / ' + data.pointLimit;
         }
         JX.DOM.setContent(JX.$(data.countTagContentID), display_value);
-
 
         var panel_map = {
             'project-panel-empty': !cards.length,

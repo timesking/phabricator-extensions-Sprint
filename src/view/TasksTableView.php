@@ -183,9 +183,6 @@ final class TasksTableView {
   private function addTaskToTree($output, $task, $tasks, $map, $handles, $depth = 0) {
     static $included = array();
 
-    // Get the owner object so we can render the owner username/link
-    $owner = $handles[$task->getOwnerPHID()];
-
     // If this task is already in this tree, this is a repeat.
     $repeat = isset($included[$task->getPHID()]);
 
@@ -197,10 +194,15 @@ final class TasksTableView {
       $depth_indent .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
     }
 
-    $ownertext = 'error';
-    if (is_object($owner)) {
-        $ownertext = $task->getOwnerPHID() ? $owner->renderLink() : 'none assigned';
+    // Get the owner object so we can render the owner username/link
+    $owner = $handles[$task->getOwnerPHID()];
+
+    if ($owner instanceof PhabricatorObjectHandle) {
+      $owner_link = $task->getOwnerPHID() ? $owner->renderLink() : 'none assigned';
+    } else {
+      $owner_link = 'none assigned';
     }
+
     // Build the row
     $output[] = array(
         phutil_safe_html($depth_indent . phutil_tag(
@@ -214,7 +216,7 @@ final class TasksTableView {
                 $task->getMonogram() . ': ' . $task->getTitle()
             ) . ($repeat ? '&nbsp;&nbsp;<em title="This task is a child of more than one task in this list. Children are only shown on ' .
                 'the first occurance">[Repeat]</em>' : '')),
-        $ownertext,
+        $owner_link,
         $priority_name->getTaskPriorityName($task->getPriority()),
         $points,
         $status,
