@@ -52,6 +52,9 @@ final class BurndownListController extends SprintController {
       ));
   }
 
+  /**
+   * @param string $order
+   */
   private function buildRowSet($project, $start, $viewer, $end, $order) {
     $rows = array();
     $row = array();
@@ -83,6 +86,11 @@ final class BurndownListController extends SprintController {
     return $rows[] = $row;
   }
 
+  /**
+   * @param AphrontRequest $request
+   * @param string $order
+   * @param integer $reverse
+   */
   private function buildProjectsTable ($rows, $request, $order, $reverse, $nav) {
     $projects_table = id(new AphrontTableView($rows))
         ->setHeaders(

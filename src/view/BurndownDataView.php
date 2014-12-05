@@ -13,7 +13,11 @@ final class BurndownDataView extends SprintView
   private $project;
   private $viewer;
   private $tasks;
+  private $events;
   private $xactions;
+  private $start;
+  private $end;
+  private $before;
 
   public function setProject($project) {
     $this->project = $project;
@@ -38,11 +42,17 @@ final class BurndownDataView extends SprintView
         ->setRequest($this->request);
     $tasks_table = $tasks_table->buildTasksTable();
     $pie = $this->buildC3Pie();
+    $history_table = new HistoryTableView();
+    $history_table = $history_table->buildHistoryTable($this->before);
     $sprint_table = new SprintTableView();
-    $burndown_table = $sprint_table->buildBurnDownTable($this->sprint_data);
-    $event_table = new EventTableView();
-    $event_table = $event_table->buildEventTable($this->project, $this->viewer);
-    return array($chart, $tasks_table, $pie, $burndown_table, $event_table);
+    $burndown_table = $sprint_table->buildBurnDownTable($this->sprint_data, $this->before);
+    $event_table = id(new EventTableView())
+        ->setProject($this->project)
+        ->setViewer($this->viewer)
+        ->setRequest($this->request);
+    $event_table = $event_table->buildEventTable($this->events, $this->xactions,
+        $this->tasks, $this->start, $this->end);
+    return array($chart, $tasks_table, $pie, $history_table, $burndown_table, $event_table);
   }
 
   private function buildChartDataSet() {
@@ -50,17 +60,19 @@ final class BurndownDataView extends SprintView
         ->setProject($this->project)
         ->setViewer($this->viewer);
     $aux_fields = $query->getAuxFields();
-    $start = $query->getStartDate($aux_fields);
-    $end = $query->getEndDate($aux_fields);
+    $this->start = $query->getStartDate($aux_fields);
+    $this->end = $query->getEndDate($aux_fields);
     $stats = id(new SprintBuildStats());
-    $timezone = $stats->setTimezone($this->viewer);
-    $dates = $stats->buildDateArray($start, $end, $timezone);
-    $this->timeseries = $stats->buildTimeSeries($start, $end);
-
     $tasks = $query->getTasks();
-    $query->checkNull($start, $end, $tasks);
+    $query->checkNull($this->start, $this->end, $tasks);
+    $timezone = $stats->setTimezone($this->viewer);
+    $this->before = $stats->buildBefore($this->start, $timezone);
+    $dates = $stats->buildDateArray($this->start, $this->end, $timezone);
+    $this->timeseries = $stats->buildTimeSeries($this->start, $this->end);
+
+
     $xactions = $query->getXactions($tasks);
-    $events = $query->getEvents($xactions, $tasks);
+    $this->events = $query->getEvents($xactions, $tasks);
 
     $this->xactions = mpull($xactions, null, 'getPHID');
     $this->tasks = mpull($tasks, null, 'getPHID');
@@ -68,19 +80,12 @@ final class BurndownDataView extends SprintView
     $sprint_xaction = id(new SprintTransaction())
         ->setViewer($this->viewer);
     $sprint_xaction->buildStatArrays($tasks);
-    $dates = $sprint_xaction->buildDailyData($events, $start, $end, $dates, $this->xactions);
+    $dates = $sprint_xaction->buildDailyData($this->events, $this->before, $this->start, $this->end, $dates, $this->xactions, $this->project);
 
-    $this->sprint_data = $this->setSprintData($dates);
+    $this->sprint_data = $stats->setSprintData($dates, $this->before);
     $data = $stats->buildDataSet($this->sprint_data);
     $data = $this->transposeArray($data);
     return $data;
-  }
-
-  private function setSprintData($dates) {
-    $stats = id(new SprintBuildStats());
-    $dates = $stats->sumSprintStats($dates);
-    $sprint_data = $stats->computeIdealPoints($dates);
-    return $sprint_data;
   }
 
   private function transposeArray($array) {

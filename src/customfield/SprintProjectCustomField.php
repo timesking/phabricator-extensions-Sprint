@@ -34,6 +34,10 @@ abstract class SprintProjectCustomField extends PhabricatorProjectCustomField
     return 'project';
   }
 
+  /**
+   * @param string $name
+   * @param string $description
+   */
   public function getDateFieldProxy($date_field, $name, $description) {
     $obj = clone $date_field;
     $date_proxy = id(new PhabricatorStandardCustomFieldDate())
@@ -58,6 +62,9 @@ abstract class SprintProjectCustomField extends PhabricatorProjectCustomField
     return null;
   }
 
+  /**
+   * @param string $time
+   */
   public function renderDateProxyEditControl($date_proxy, $time) {
     if (!$this->shouldShowSprintFields()) {
       return null;

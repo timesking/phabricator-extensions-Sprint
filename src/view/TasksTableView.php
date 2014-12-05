@@ -43,6 +43,8 @@ final class TasksTableView {
         ->setHeaders(
             array(
                 pht('Task'),
+                pht('Date Created'),
+                pht('Last Update'),
                 pht('Assigned to'),
                 pht('Priority'),
                 pht('Points'),
@@ -55,6 +57,8 @@ final class TasksTableView {
         $reverse,
         array(
             'Task',
+            'Date Created',
+            'Last Update',
             'Assigned to',
             'Priority',
             'Points',
@@ -75,6 +79,8 @@ final class TasksTableView {
    *
    * We ignore any tasks not in this sprint.
    *
+   * @param string $order
+   * @param integer $reverse
    * @return array
    */
   private function buildTasksTree($order, $reverse) {
@@ -105,8 +111,8 @@ final class TasksTableView {
       }
 
       $row = $this->addTaskToTree($output, $task, $tasks, $map, $handles);
-      list ($task, $assigned_to, $priority,$points, $status) = $row[0];
-      $row['sort'] = $this->setSortOrder($row, $order, $task, $assigned_to, $priority,$points, $status);
+      list ($task, $created, $last_update, $assigned_to, $priority,$points, $status) = $row[0];
+      $row['sort'] = $this->setSortOrder($row, $order, $task, $created, $last_update, $assigned_to, $priority,$points, $status);
       $rows[] = $row;
     }
     $rows = isort($rows, 'sort');
@@ -122,11 +128,21 @@ final class TasksTableView {
     return $rows;
   }
 
-  private function setSortOrder ($row, $order, $task, $assigned_to, $priority,
+  /**
+   * @param string $priority
+   * @param string $points
+   */
+  private function setSortOrder ($row, $order, $task, $created, $last_update, $assigned_to, $priority,
                                  $points, $status) {
     switch ($order) {
       case 'Task':
         $row['sort'] = $task;
+        break;
+      case 'Date Created':
+        $row['sort'] = $created;
+        break;
+      case 'Date Modified':
+        $row['sort'] = $last_update;
         break;
       case 'Assigned to':
         $row['sort'] = $assigned_to;
@@ -170,6 +186,18 @@ final class TasksTableView {
     return $map;
   }
 
+  private function setOwnerLink($handles, $task) {
+    // Get the owner object so we can render the owner username/link
+    $owner = $handles[$task->getOwnerPHID()];
+
+    if ($owner instanceof PhabricatorObjectHandle) {
+      $owner_link = $task->getOwnerPHID() ? $owner->renderLink() : 'none assigned';
+    } else {
+      $owner_link = 'none assigned';
+    }
+    return $owner_link;
+  }
+
   private function getTaskPoints($task) {
     $query = id(new SprintQuery())
         ->setProject($this->project)
@@ -180,6 +208,21 @@ final class TasksTableView {
     return $points;
   }
 
+  private function getTaskCreatedDate($task) {
+    $date_created = $task->getDateCreated();
+    return $date_created;
+  }
+
+  private function getTaskModifiedDate($task) {
+    $last_updated = $task->getDateModified();
+    return $last_updated;
+  }
+
+  private function getPriorityName($task) {
+    $priority_name = new ManiphestTaskPriority;
+    return $priority_name->getTaskPriorityName($task->getPriority());
+  }
+
   private function addTaskToTree($output, $task, $tasks, $map, $handles, $depth = 0) {
     static $included = array();
 
@@ -187,21 +230,19 @@ final class TasksTableView {
     $repeat = isset($included[$task->getPHID()]);
 
     $points = $this->getTaskPoints($task);
-    $priority_name = new ManiphestTaskPriority();
+    $cdate = $this->getTaskCreatedDate($task);
+    $date_created = phabricator_datetime($cdate, $this->viewer);
+    $udate = $this->getTaskModifiedDate($task);
+    $last_updated = phabricator_datetime($udate, $this->viewer);
+
     $status = $this->setTaskStatus($task);
     $depth_indent = '';
     for ($i = 0; $i < $depth; $i++) {
       $depth_indent .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
     }
 
-    // Get the owner object so we can render the owner username/link
-    $owner = $handles[$task->getOwnerPHID()];
-
-    if ($owner instanceof PhabricatorObjectHandle) {
-      $owner_link = $task->getOwnerPHID() ? $owner->renderLink() : 'none assigned';
-    } else {
-      $owner_link = 'none assigned';
-    }
+    $owner_link = $this->setOwnerLink($handles, $task);
+    $priority_name = $this->getPriorityName($task);
 
     // Build the row
     $output[] = array(
@@ -216,8 +257,10 @@ final class TasksTableView {
                 $task->getMonogram() . ': ' . $task->getTitle()
             ) . ($repeat ? '&nbsp;&nbsp;<em title="This task is a child of more than one task in this list. Children are only shown on ' .
                 'the first occurance">[Repeat]</em>' : '')),
+        $date_created,
+        $last_updated,
         $owner_link,
-        $priority_name->getTaskPriorityName($task->getPriority()),
+        $priority_name,
         $points,
         $status,
     );
@@ -232,6 +275,9 @@ final class TasksTableView {
     return $output;
   }
 
+  /**
+   * @return string
+   */
   private function getTaskStoryPoints($task,$points_data) {
     $storypoints = array();
     foreach ($points_data as $k=>$subarray) {

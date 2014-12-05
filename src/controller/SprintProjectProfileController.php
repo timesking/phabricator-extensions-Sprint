@@ -225,6 +225,9 @@ final class SprintProjectProfileController
     return $content;
   }
 
+  /**
+   * @return PhabricatorProject
+   */
   private function buildActionListView(PhabricatorProject $project) {
     $request = $this->getRequest();
     $viewer = $request->getUser();
