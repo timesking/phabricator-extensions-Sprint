@@ -4,7 +4,7 @@
  * @license GPL version 3
  */
 
-final class BurndownListController extends SprintController {
+final class SprintListController extends SprintController {
 
   private $view;
 
@@ -80,7 +80,7 @@ final class BurndownListController extends SprintController {
         break;
       case 'name':
       default:
-        $row['sort'] = $project->getName();
+        $row['sort'] = -$start;
         break;
     }
     return $rows[] = $row;

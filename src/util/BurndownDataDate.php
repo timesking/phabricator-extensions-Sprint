@@ -35,7 +35,7 @@ class BurndownDataDate {
   }
 
   public function setTasksAddedBefore () {
-    return $this->tasks_added_before = $this->tasks_added_before +1;
+    return $this->tasks_added_before = $this->tasks_added_before + 1;
   }
 
   public function getTasksAddedBefore () {

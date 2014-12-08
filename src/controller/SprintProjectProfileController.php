@@ -38,7 +38,7 @@ final class SprintProjectProfileController
     if (!$this->shouldShowSprintFields($project)) {
       $board_name = 'Workboard';
     } else {
-      $board_name = 'Sprint Board';
+      $board_name = 'Sprint board';
     }
     return $board_name;
   }

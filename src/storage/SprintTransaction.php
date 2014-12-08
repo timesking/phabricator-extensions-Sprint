@@ -26,6 +26,8 @@ final class SprintTransaction  {
 
       if (in_array($project_phid, $project_phids)) {
         $points = $query->getStoryPoints($task_phid);
+        $old_point_value = $xaction->getOldValue();
+        $new_point_value = $xaction->getNewValue();
         $date = phabricator_format_local_time($xaction_date, $this->viewer, 'D M j');
 
 
@@ -38,18 +40,17 @@ final class SprintTransaction  {
               break;
             case "close":
               // A task was closed, mark it as done
-  //             $this->CloseTasksBefore($before, $dates);
-             // $this->ClosePointsBefore($before, $points, $dates);
+              $this->CloseTasksBefore($before, $dates);
+ //             $this->ClosePointsBefore($before, $points, $dates);
               break;
             case "reopen":
               // A task was reopened, subtract from done
-    //          $this->ReopenedTasksBefore($before, $dates);
-    //          $this->ReopenedPointsBefore($before, $points, $dates);
+               $this->ReopenedTasksBefore($before, $dates);
+ //              $this->ReopenedPointsBefore($before, $points, $dates);
               break;
             case "points":
               // Points were changed
-                $old_point_value = $xaction->getOldValue();
-                $this->ChangePointsBefore($before, $points, $old_point_value, $dates);
+                 $this->ChangePointsBefore($before, $new_point_value, $old_point_value);
                  break;
           }
         }
@@ -88,8 +89,7 @@ final class SprintTransaction  {
             case "points":
 //              $this->transLog($event);
               // Points were changed
-                $old_point_value = $xaction->getOldValue();
-                $this->changePoints($date, $task_phid, $points, $old_point_value, $dates);
+                $this->changePoints($date, $task_phid, $new_point_value, $old_point_value, $dates);
 //                $this->closePoints($date, $task_phid, $points, $old_point_value, $dates);
               break;
           }
@@ -153,8 +153,8 @@ final class SprintTransaction  {
     return $dates;
   }
 
-  private function ChangePointsBefore($before, $points,  $old_point_value) {
-    $points = $points - $old_point_value;
+  private function ChangePointsBefore($before, $new_point_value,  $old_point_value) {
+    $points = $new_point_value - $old_point_value;
     $before->setPointsAddedBefore($points);
   }
 
@@ -178,10 +178,10 @@ final class SprintTransaction  {
     return $this->task_in_sprint[$task_phid];
   }
 
-  private function changePoints($date, $task_phid, $points, $old_point_value, $dates) {
+  private function changePoints($date, $task_phid, $new_point_value, $old_point_value, $dates) {
 
     // Adjust points for that day
-    $this->task_points[$task_phid] = $points - $old_point_value;
+    $this->task_points[$task_phid] = $new_point_value - $old_point_value;
     $dates[$date]->setPointsAddedToday($this->task_points[$task_phid]);
     return $dates;
   }

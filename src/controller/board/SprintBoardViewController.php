@@ -329,7 +329,7 @@ final class SprintBoardViewController
         $board_box,
       ),
       array(
-        'title' => pht('%s Board', $project->getName()),
+        'title' => pht('%s board', $project->getName()),
         'showFooter' => false,
       ));
   }
@@ -524,7 +524,7 @@ final class SprintBoardViewController
     }
 
     $manage_button = id(new PHUIButtonView())
-      ->setText(pht('Manage Board'))
+      ->setText(pht('Manage board'))
       ->setIcon($manage_icon)
       ->setTag('a')
       ->setHref('#')
@@ -619,7 +619,7 @@ final class SprintBoardViewController
       ->setValue('backlog-only')
       ->addButton(
         'backlog-only',
-        pht('New Empty Board'),
+        pht('New Empty board'),
         pht('Create a new board with just a backlog column.'))
       ->addButton(
         'import',

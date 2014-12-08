@@ -41,11 +41,11 @@ final class SprintApplicationTest extends SprintTestCase {
         ),
         '/sprint/' => array(
             'edit/(?P<id>[1-9]\d*)/' => 'PhabricatorProjectEditMainController',
-            '' => 'BurndownListController',
-            'report/' => 'BurndownListController',
-            'report/list/' => 'BurndownListController',
+            '' => 'SprintListController',
+            'report/' => 'SprintListController',
+            'report/list/' => 'SprintListController',
             'report/(?:(?P<view>\w+)/)?' => 'SprintReportController',
-            'view/(?P<id>\d+)/' => 'BurndownDataViewController',
+            'view/(?P<id>\d+)/' => 'SprintDataViewController',
             'details/(?P<id>[1-9]\d*)/'
             => 'PhabricatorProjectEditDetailsController',
             'archive/(?P<id>[1-9]\d*)/'

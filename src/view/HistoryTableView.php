@@ -10,8 +10,6 @@ final class HistoryTableView
             $before->getTasksReopenedBefore(),
             $before->getTasksClosedBefore(),
             $before->getPointsAddedBefore(),
-            $before->getPointsReopenedBefore(),
-            $before->getPointsClosedBefore(),
             $before->getPointsForwardfromBefore(),
         );
 
@@ -22,10 +20,7 @@ final class HistoryTableView
                 pht('Tasks Reopened'),
                 pht('Tasks Closed'),
                 pht('Points Added'),
-                pht('Points Reopened'),
-                pht('Points Closed'),
                 pht('Points Forwarded'),
-
             ));
     $box = id(new PHUIObjectBoxView())
         ->setHeaderText(pht('Before Sprint'))

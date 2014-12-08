@@ -57,7 +57,7 @@ final class SprintBoardColumnDetailController
     $title = pht('%s', $column->getDisplayName());
     $crumbs = $this->buildApplicationCrumbs();
     $crumbs->addTextCrumb(
-      pht('Board'),
+      pht('board'),
       $this->getApplicationURI('board/'.$project->getID().'/'));
     $crumbs->addTextCrumb($title);
 
