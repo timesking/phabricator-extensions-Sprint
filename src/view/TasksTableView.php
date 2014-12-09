@@ -43,9 +43,12 @@ final class TasksTableView {
         ->setHeaders(
             array(
                 pht('Task'),
+                pht('Epoch Created'),
                 pht('Date Created'),
+                pht('Epoch Updated'),
                 pht('Last Update'),
                 pht('Assigned to'),
+                pht('NumPriority'),
                 pht('Priority'),
                 pht('Points'),
                 pht('Status'),
@@ -57,14 +60,30 @@ final class TasksTableView {
         $reverse,
         array(
             'Task',
+            'Epoch Created',
             'Date Created',
+            'Epoch Updated',
             'Last Update',
             'Assigned to',
+            'NumPriority',
             'Priority',
             'Points',
             'Status'
         )
     );
+    $table->setColumnVisibility(
+        array(
+            true,
+            false,
+            true,
+            false,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+        ));
 
     $box = id(new PHUIObjectBoxView())
         ->setHeaderText(pht('Tasks in this Sprint'))
@@ -111,8 +130,8 @@ final class TasksTableView {
       }
 
       $row = $this->addTaskToTree($output, $task, $tasks, $map, $handles);
-      list ($task, $created, $last_update, $assigned_to, $priority,$points, $status) = $row[0];
-      $row['sort'] = $this->setSortOrder($row, $order, $task, $created, $last_update, $assigned_to, $priority,$points, $status);
+      list ($task, $cdate, $date_created, $udate, $last_update, $owner_link, $numpriority, $priority, $points, $status) = $row[0];
+      $row['sort'] = $this->setSortOrder($row, $order, $task, $cdate, $udate, $owner_link, $numpriority, $points, $status);
       $rows[] = $row;
     }
     $rows = isort($rows, 'sort');
@@ -128,34 +147,32 @@ final class TasksTableView {
     return $rows;
   }
 
-  /**
-   * @param string $priority
-   * @param string $points
-   */
-  private function setSortOrder ($row, $order, $task, $created, $last_update, $assigned_to, $priority,
+  private function setSortOrder ($row, $order, $task, $cdate, $udate, $owner_link, $numpriority,
                                  $points, $status) {
     switch ($order) {
       case 'Task':
         $row['sort'] = $task;
         break;
       case 'Date Created':
-        $row['sort'] = $created;
+        $row['sort'] = $cdate;
         break;
-      case 'Date Modified':
-        $row['sort'] = $last_update;
+      case 'Last Update':
+        $row['sort'] = $udate;
         break;
       case 'Assigned to':
-        $row['sort'] = $assigned_to;
+        $row['sort'] = $owner_link;
         break;
       case 'Priority':
-        $row['sort'] = $priority;
+        $row['sort'] = $numpriority;
         break;
       case 'Points':
         $row['sort'] = $points;
         break;
       case 'Status':
-      default:
         $row['sort'] = $status;
+        break;
+      default:
+        $row['sort'] = -$numpriority;
         break;
     }
     return $row['sort'];
@@ -223,6 +240,10 @@ final class TasksTableView {
     return $priority_name->getTaskPriorityName($task->getPriority());
   }
 
+  private function getPriority($task) {
+    return $task->getPriority();
+  }
+
   private function addTaskToTree($output, $task, $tasks, $map, $handles, $depth = 0) {
     static $included = array();
 
@@ -242,6 +263,7 @@ final class TasksTableView {
     }
 
     $owner_link = $this->setOwnerLink($handles, $task);
+    $priority = $this->getPriority($task);
     $priority_name = $this->getPriorityName($task);
 
     // Build the row
@@ -257,9 +279,12 @@ final class TasksTableView {
                 $task->getMonogram() . ': ' . $task->getTitle()
             ) . ($repeat ? '&nbsp;&nbsp;<em title="This task is a child of more than one task in this list. Children are only shown on ' .
                 'the first occurance">[Repeat]</em>' : '')),
+        $cdate,
         $date_created,
+        $udate,
         $last_updated,
         $owner_link,
+        $priority,
         $priority_name,
         $points,
         $status,

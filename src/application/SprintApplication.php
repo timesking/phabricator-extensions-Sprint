@@ -10,8 +10,9 @@ final class SprintApplication extends PhabricatorApplication {
     return pht('Sprint');
   }
 
-  public function getBaseURI() {
-    return '/sprint/';
+  public function getBaseURI()
+  {
+      return '/sprint/';
   }
 
   public function getIconName() {

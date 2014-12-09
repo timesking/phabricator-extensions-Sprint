@@ -117,7 +117,7 @@ final class SprintListController extends SprintController {
             ));
 
 
-    $crumbs = $this->buildApplicationCrumbs();
+    $crumbs = $this->buildSprintApplicationCrumbs();
     $crumbs->addTextCrumb(pht('Burndown List'));
 
 

@@ -37,7 +37,7 @@ final class SprintDataViewController extends SprintController {
           ->setErrors(array($e->getMessage()));
     }
 
-    $crumbs = $this->buildApplicationCrumbs();
+    $crumbs = $this->buildSprintApplicationCrumbs();
     $crumbs->addTextCrumb(
         $project->getName(),
         '/project/view/'.$project->getID());

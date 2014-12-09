@@ -120,7 +120,11 @@ final class SprintProjectProfileController
     $actions = $this->buildActionListView($project);
     $properties = $this->buildPropertyListView($project, $actions);
 
-    $crumbs = $this->buildApplicationCrumbs();
+    if (!$this->shouldShowSprintFields($project)) {
+      $crumbs = $this->buildApplicationCrumbs();
+    } else {
+      $crumbs = $this->buildSprintApplicationCrumbs();
+    }
     $crumbs->addTextCrumb($project->getName())
       ->setActionList($actions);
 
