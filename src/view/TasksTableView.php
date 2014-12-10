@@ -111,6 +111,7 @@ final class TasksTableView {
     $edges = $query->getEdges($tasks);
     $map = $this->buildTaskMap($edges, $tasks);
 
+    $points_data = $query->getPointsTransactions();
     // We also collect the phids we need to fetch owner information
     $handle_phids = array();
     foreach ($tasks as $task) {
@@ -129,7 +130,8 @@ final class TasksTableView {
         continue;
       }
 
-      $row = $this->addTaskToTree($output, $task, $tasks, $map, $handles);
+      $points = $this->getTaskPoints($task, $points_data);
+      $row = $this->addTaskToTree($output, $task, $tasks, $map, $handles, $points);
       list ($task, $cdate, $date_created, $udate, $last_update, $owner_link, $numpriority, $priority, $points, $status) = $row[0];
       $row['sort'] = $this->setSortOrder($row, $order, $task, $cdate, $udate, $owner_link, $numpriority, $points, $status);
       $rows[] = $row;
@@ -215,13 +217,11 @@ final class TasksTableView {
     return $owner_link;
   }
 
-  private function getTaskPoints($task) {
+  private function getTaskPoints($task, $points_data) {
     $query = id(new SprintQuery())
         ->setProject($this->project)
         ->setViewer($this->viewer);
-    $data = $query->getXactionData(SprintConstants::CUSTOMFIELD_TYPE_STATUS);
-    $points = $this->getTaskStoryPoints($task->getPHID(),$data);
-    $points = trim($points, '"');
+    $points = $query->getPointsfromArray($task->getPHID(),$points_data);
     return $points;
   }
 
@@ -244,13 +244,13 @@ final class TasksTableView {
     return $task->getPriority();
   }
 
-  private function addTaskToTree($output, $task, $tasks, $map, $handles, $depth = 0) {
+  private function addTaskToTree($output, $task, $tasks, $map, $handles, $points,  $depth = 0) {
     static $included = array();
 
     // If this task is already in this tree, this is a repeat.
     $repeat = isset($included[$task->getPHID()]);
 
-    $points = $this->getTaskPoints($task);
+
     $cdate = $this->getTaskCreatedDate($task);
     $date_created = phabricator_datetime($cdate, $this->viewer);
     $udate = $this->getTaskModifiedDate($task);
@@ -294,24 +294,10 @@ final class TasksTableView {
     if (isset($map[$task->getPHID()]['children'])) {
       foreach ($map[$task->getPHID()]['children'] as $child) {
         $child = $tasks[$child];
-        $this->addTaskToTree($output, $child, $map, $handles, $depth + 1);
+        $this->addTaskToTree($output, $child, $map, $handles, $points, $depth + 1);
       }
     }
     return $output;
-  }
-
-  /**
-   * @return string
-   */
-  private function getTaskStoryPoints($task,$points_data) {
-    $storypoints = array();
-    foreach ($points_data as $k=>$subarray) {
-      if (isset ($subarray['objectPHID']) && $subarray['objectPHID'] == $task) {
-        $points_data[$k] = $subarray;
-        $storypoints = $subarray['newValue'];
-      }
-    }
-    return $storypoints;
   }
 
   private function setTaskStatus($task) {
@@ -319,10 +305,10 @@ final class TasksTableView {
     return $status;
   }
 
-  private function sumPointsbyStatus ($task) {
+  private function sumPointsbyStatus ($task, $points_data) {
     $stats = id(new SprintBuildStats());
     $status = $this->setTaskStatus($task);
-    $points = $this->getTaskPoints($task);
+    $points = $this->getTaskPoints($task, $points_data);
     if ($status == 'open') {
       $this->task_open_status_sum = $stats->setTaskOpenStatusSum($this->task_open_status_sum, $points);
     } elseif ($status == 'resolved') {
@@ -336,9 +322,10 @@ final class TasksTableView {
         ->setProject($this->project)
         ->setViewer($this->viewer);
     $tasks = $query->getTasks();
+    $points_data = $query->getXactionData(SprintConstants::CUSTOMFIELD_TYPE_STATUS);
     $tasks = mpull($tasks, null, 'getPHID');
     foreach ($tasks as $task) {
-      $this->sumPointsbyStatus($task);
+      $this->sumPointsbyStatus($task, $points_data);
     }
    return;
   }

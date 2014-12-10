@@ -155,7 +155,7 @@ final class SprintBoardTaskEditController extends ManiphestController {
         $task = $this->setTaskError($task, $new_title, $new_desc,
             $request, $owner_phid);
       } else {
-        $changes = $this->setTaskChanges($request, $owner_phid, $user, $task);
+        $this->setTaskChanges($request, $owner_phid, $user, $task);
 
         if ($can_edit_policies) {
           $changes[PhabricatorTransactions::TYPE_VIEW_POLICY] =
@@ -165,15 +165,18 @@ final class SprintBoardTaskEditController extends ManiphestController {
         }
 
        $template = new ManiphestTransaction();
-       $transactions = $this->setTransactions($template, $changes);
+       $transactions = array();
+       $transactions = $this->setTransactions($template, $changes, $transactions);
 
         if ($aux_fields) {
-          $transactions = $this->setAuxFieldTransactions($aux_fields, $template, $old_values);
+          $auxtransactions = $this->setAuxFieldTransactions($aux_fields, $template, $old_values);
          }
+
+        $transactions = array_merge ($transactions, $auxtransactions);
 
         if ($transactions) {
           $is_new = !$task->getID();
-          $task = $this->createEvent($task, $is_new, $transactions, $user, $request);
+          $this->createEvent($task, $is_new, $transactions, $user, $request);
         }
 
         if ($parent_task) {
@@ -698,7 +701,7 @@ final class SprintBoardTaskEditController extends ManiphestController {
         }
       }
     }
-    return $changes;
+    return;
   }
 
   private function createEvent($task, $is_new, $transactions, $user, $request) {
@@ -715,11 +718,13 @@ final class SprintBoardTaskEditController extends ManiphestController {
 
     $task = $event->getValue('task');
     $transactions = $event->getValue('transactions');
-    id(new ManiphestTransactionEditor())
+
+    $editor = id(new ManiphestTransactionEditor())
         ->setActor($user)
         ->setContentSourceFromRequest($request)
         ->setContinueOnNoEffect(true)
         ->applyTransactions($task, $transactions);
+
     $event = new PhabricatorEvent(
         PhabricatorEventType::TYPE_MANIPHEST_DIDEDITTASK,
         array(
@@ -730,11 +735,10 @@ final class SprintBoardTaskEditController extends ManiphestController {
     $event->setUser($user);
     $event->setAphrontRequest($request);
     PhutilEventEngine::dispatchEvent($event);
-    return $task;
+    return;
   }
 
-  private function setTransactions($template, $changes) {
-    $transactions = array();
+  private function setTransactions($template, $changes, $transactions) {
 
     foreach ($changes as $type => $value) {
       $transaction = clone $template;
@@ -758,7 +762,7 @@ final class SprintBoardTaskEditController extends ManiphestController {
       }
       $transactions[] = $transaction;
     }
-    return array ($transactions);
+    return $transactions;
   }
 
   private function setAuxFieldTransactions($aux_fields, $template, $old_values) {

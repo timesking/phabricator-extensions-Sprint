@@ -62,7 +62,8 @@ final class SprintBoardTaskCard {
     $task = $this->getTask();
     $task_phid = $task->getPHID();
     $owner = $this->getOwner();
-    $points = $query->getStoryPoints($task_phid);
+    $data = $query->getPointsTransactions();
+    $points = $query->getStoryPoints($task_phid, $data);
     $can_edit = $this->getCanEdit();
 
     $color_map = ManiphestTaskPriority::getColorMap();
