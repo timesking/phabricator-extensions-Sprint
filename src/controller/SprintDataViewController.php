@@ -27,7 +27,7 @@ final class SprintDataViewController extends SprintController {
     $burndown_view = false;
 
     try {
-      $burndown_view = id(new BurndownDataView())
+      $burndown_view = id(new SprintDataView())
           ->setProject($project)
           ->setViewer($viewer)
           ->setRequest($request);

@@ -62,9 +62,8 @@ final class SprintBoardTaskCard {
     $task = $this->getTask();
     $task_phid = $task->getPHID();
     $owner = $this->getOwner();
-    $data = $query->getPointsTransactions();
-    $points = $query->getStoryPoints($task_phid, $data);
-    $can_edit = $this->getCanEdit();
+    $points = $query->getStoryPointsForTask($task_phid);
+     $can_edit = $this->getCanEdit();
 
     $color_map = ManiphestTaskPriority::getColorMap();
     $bar_color = idx($color_map, $task->getPriority(), 'grey');
@@ -88,6 +87,12 @@ final class SprintBoardTaskCard {
         ->setIcon('fa-pencil')
         ->addSigil('edit-project-card')
         ->setHref('/sprint/board/task/edit/'.$task->getID().'/'))
+      ->addAction(
+            id(new PHUIListItemView())
+                ->setName(pht('View Checklist'))
+                ->setIcon('fa-camera-retro')
+                ->addSigil('edit-project-card')
+                ->setHref("/search/attach/{$task_phid}/MOCK/edge/"))
       ->setBarColor($bar_color);
 
     if ($owner) {

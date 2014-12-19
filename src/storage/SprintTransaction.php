@@ -15,7 +15,6 @@ final class SprintTransaction  {
   public function buildDailyData($events, $before, $start, $end, $dates, $xactions, $project) {
 
     $query = id(new SprintQuery());
-    $points_data = $query->getPointsTransactions();
 
     foreach ($events as $event) {
       $date = null;
@@ -26,9 +25,8 @@ final class SprintTransaction  {
       $project_phids = $xaction->getObject()->getProjectPHIDs();
 
       if (in_array($project_phid, $project_phids)) {
-        $points = $query->getStoryPoints($task_phid, $points_data);
-        $old_point_value = $xaction->getOldValue();
-        $new_point_value = $xaction->getNewValue();
+        $points = $query->getStoryPointsForTask($task_phid);
+
         $date = phabricator_format_local_time($xaction_date, $this->viewer, 'D M j');
 
 
@@ -50,6 +48,8 @@ final class SprintTransaction  {
  //              $this->ReopenedPointsBefore($before, $points, $dates);
               break;
             case "points":
+              $old_point_value = $xaction->getOldValue();
+              $new_point_value = $xaction->getNewValue();
               // Points were changed
                  $this->ChangePointsBefore($before, $new_point_value, $old_point_value);
                  break;
@@ -88,8 +88,8 @@ final class SprintTransaction  {
              $this->ReopenedPointsToday($date, $points, $dates);
               break;
             case "points":
-//              $this->transLog($event);
-              // Points were changed
+              $old_point_value = $xaction->getOldValue();
+              $new_point_value = $xaction->getNewValue();
                 $this->changePoints($date, $task_phid, $new_point_value, $old_point_value, $dates);
 //                $this->closePoints($date, $task_phid, $points, $old_point_value, $dates);
               break;

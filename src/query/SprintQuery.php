@@ -1,6 +1,6 @@
 <?php
 
-final class SprintQuery  {
+final class SprintQuery extends SprintDAO {
 
   private $viewer;
   private $project;
@@ -57,30 +57,22 @@ final class SprintQuery  {
     return $tasks;
   }
 
-  public function getPointsfromArray($task_phid, $data) {
-    $storypoints = null;
-    foreach ($data as $k=>$subarray) {
-      if (isset ($subarray['objectPHID']) && $subarray['objectPHID'] == $task_phid) {
-        $data[$k] = $subarray;
-        $storypoints = $subarray['newValue'];
+  public function getStoryPointsForTask($task_phid)  {
+    $object = new ManiphestCustomFieldStorage();
+    $corecustomfield = $object->loadRawDataWhere('objectPHID= %s', $task_phid);
+    if (!empty($corecustomfield)) {
+      foreach ($corecustomfield as $array) {
+        $points = idx($array, 'fieldValue');
       }
+    } else {
+      $points = 0;
     }
-    $points = trim($storypoints, '"');
-    return $points;
+     return $points;
   }
 
-  public function getPointsTransactions() {
-    return $this->getXactionData(SprintConstants::CUSTOMFIELD_TYPE_STATUS);
-  }
-
-  public function getStoryPoints($task_phid, $data)  {
-    $points = $this->getPointsfromArray($task_phid, $data);
-    return $points;
-  }
 
   public function getXactions($tasks) {
     $task_phids = mpull($tasks, 'getPHID');
-
     $xactions = id(new ManiphestTransactionQuery())
         ->setViewer($this->viewer)
         ->withObjectPHIDs($task_phids)

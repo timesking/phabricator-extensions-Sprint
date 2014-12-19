@@ -20,12 +20,18 @@ final class SprintApplication extends PhabricatorApplication {
   }
 
   public function getShortDescription() {
-    return 'Build burndowns';
+    return 'Build Sprints';
   }
 
   public function getEventListeners() {
     return array(
       new BurndownActionMenuEventListener()
+    );
+  }
+
+  public function getFactObjectsForAnalysis() {
+    return array(
+        new ManiphestTransaction(),
     );
   }
 
@@ -78,16 +84,27 @@ final class SprintApplication extends PhabricatorApplication {
           ),
           '/tag/' => array(
               '(?P<slug>[^/]+)/' => 'SprintProjectProfileController',
-              '(?P<slug>[^/]+)/board/' => 'SprintBoardViewController',
           ),
       );
     }
 
   protected function getCustomCapabilities() {
     return array(
+        SprintDefaultViewCapability::CAPABILITY => array(
+            'caption' => pht(
+                'Default view policy for newly created sprints.'),
+        ),
         ProjectCreateProjectsCapability::CAPABILITY => array(),
         ProjectCanLockProjectsCapability::CAPABILITY => array(
             'default' => PhabricatorPolicies::POLICY_ADMIN,
+        ),
+        ProjectDefaultViewCapability::CAPABILITY => array(
+            'caption' => pht(
+                'Default view policy for newly created projects.'),
+        ),
+        ProjectDefaultEditCapability::CAPABILITY => array(
+            'caption' => pht(
+                'Default edit policy for newly created projects.'),
         ),
         ManiphestDefaultViewCapability::CAPABILITY => array(
             'caption' => pht('Default view policy for newly created tasks.'),
@@ -100,7 +117,6 @@ final class SprintApplication extends PhabricatorApplication {
         ManiphestEditPoliciesCapability::CAPABILITY => array(),
         ManiphestEditPriorityCapability::CAPABILITY => array(),
         ManiphestEditProjectsCapability::CAPABILITY => array(),
-        ManiphestBulkEditCapability::CAPABILITY => array(),
     );
   }
 }

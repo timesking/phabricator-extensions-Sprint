@@ -8,7 +8,7 @@ final class SprintTableView
    *
    * @returns PHUIObjectBoxView
    */
-  public function buildBurnDownTable($sprint_data, $before)
+  public function buildSprintTable($sprint_data, $before)
   {
     $tdata = array();
     $pdata = array();

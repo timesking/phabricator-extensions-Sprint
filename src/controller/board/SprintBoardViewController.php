@@ -11,10 +11,6 @@ final class SprintBoardViewController
   private $sortKey;
   private $showHidden;
 
-  public function shouldAllowPublic() {
-    return true;
-  }
-
   public function willProcessRequest(array $data) {
     $this->id = idx($data, 'id');
     $this->slug = idx($data, 'slug');
