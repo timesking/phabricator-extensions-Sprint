@@ -116,7 +116,6 @@ final class SprintBuildStats {
       $previous = $date;
       $first = false;
     }
-
     return $dates;
   }
 
