@@ -181,7 +181,6 @@ final class SprintProjectProfileController
       ->withAnyProjects(array($project->getPHID()))
       ->withStatuses(ManiphestTaskStatus::getOpenStatusConstants())
       ->setOrderBy(ManiphestTaskQuery::ORDER_PRIORITY)
-      ->needProjectPHIDs(true)
       ->setLimit(10);
     $tasks = $query->execute();
 
@@ -248,7 +247,7 @@ final class SprintProjectProfileController
     $can_edit = PhabricatorPolicyFilter::hasCapability(
       $viewer,
       $project,
-      SprintDefaultEditCapability::CAN_EDIT);
+      PhabricatorPolicyCapability::CAN_EDIT);
 
     $view->addAction(
       id(new PhabricatorActionView())
@@ -304,17 +303,12 @@ final class SprintProjectProfileController
       }
     }
 
-    $have_phriction = PhabricatorApplication::isClassInstalledForViewer(
-        'PhabricatorPhrictionApplication',
-        $viewer);
-    if ($have_phriction) {
-      $view->addAction(
-          id(new PhabricatorActionView())
-              ->setIcon('fa-book grey')
-              ->setName(pht('View Wiki'))
-              ->setWorkflow(true)
-              ->setHref('/project/wiki/'));
-    }
+    $view->addAction(
+      id(new PhabricatorActionView())
+        ->setIcon('fa-book grey')
+        ->setName(pht('View Wiki'))
+        ->setWorkflow(true)
+        ->setHref('/project/wiki/'));
 
     return $view;
   }

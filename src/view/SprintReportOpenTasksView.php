@@ -370,7 +370,6 @@ final class SprintReportOpenTasksView extends SprintView {
     return id(new ManiphestTaskQuery())
         ->setViewer($this->request->getUser())
         ->withIDs($ids)
-        ->needProjectPHIDs(true)
         ->execute();
   }
 
@@ -387,11 +386,7 @@ final class SprintReportOpenTasksView extends SprintView {
    * @param PhabricatorUser $user
    */
   private function getOpenTasksforProject($user, $phids) {
-    $query = id(new ManiphestTaskQuery())
-        ->setViewer($user)
-        ->needProjectPHIDs(true)
-        ->withAnyProjects($phids)
-        ->withStatuses(ManiphestTaskStatus::getOpenStatusConstants());
+    $query = $this->openStatusQuery($user)->withAnyProjects($phids);
     $tasks = $query->execute();
     return $tasks;
   }
@@ -399,7 +394,6 @@ final class SprintReportOpenTasksView extends SprintView {
   private function openStatusQuery($user) {
     $query = id(new ManiphestTaskQuery())
         ->setViewer($user)
-        ->needProjectPHIDs(true)
         ->withStatuses(ManiphestTaskStatus::getOpenStatusConstants());
     return $query;
   }
