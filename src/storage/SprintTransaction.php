@@ -22,7 +22,13 @@ final class SprintTransaction  {
       $xaction_date = $xaction->getDateCreated();
       $task_phid = $xaction->getObjectPHID();
       $project_phid = $project->getPHID();
-      $project_phids = $xaction->getObject()->getProjectPHIDs();
+
+      $task = id(new ManiphestTaskQuery())
+          ->setViewer($this->viewer)
+          ->withPHIDs(array($task_phid))
+          ->needProjectPHIDs(true)
+          ->executeOne();
+      $project_phids = $task->getProjectPHIDs();
 
       if (in_array($project_phid, $project_phids)) {
         $points = $query->getStoryPointsForTask($task_phid);

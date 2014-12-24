@@ -53,6 +53,7 @@ final class SprintQuery extends SprintDAO {
     $tasks = id(new ManiphestTaskQuery())
         ->setViewer($this->viewer)
         ->withAnyProjects(array($this->project->getPHID()))
+        ->needProjectPHIDs(true)
         ->execute();
     return $tasks;
   }
