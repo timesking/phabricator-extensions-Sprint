@@ -82,17 +82,17 @@ final class SprintBoardTaskCard {
           'points' => $points,
         ))
       ->addAction(
-        id(new PHUIListItemView())
-        ->setName(pht('Edit'))
-        ->setIcon('fa-pencil')
-        ->addSigil('edit-project-card')
-        ->setHref('/sprint/board/task/edit/'.$task->getID().'/'))
+            id(new PHUIListItemView())
+                ->setName(pht('Edit'))
+                ->setIcon('fa-pencil')
+                ->addSigil('edit-project-card')
+                ->setHref('/sprint/board/task/edit/'.$task->getID().'/'))
       ->addAction(
             id(new PHUIListItemView())
-                ->setName(pht('View Checklist'))
-                ->setIcon('fa-camera-retro')
-                ->addSigil('edit-project-card')
-                ->setHref("/search/attach/{$task_phid}/MOCK/edge/"))
+                ->setName(pht('Edit Blocking Tasks'))
+                ->setHref("/search/attach/{$task_phid}/TASK/blocks/")
+                ->setIcon('fa-link')
+                ->setDisabled(!$can_edit))
       ->setBarColor($bar_color);
 
     if ($owner) {

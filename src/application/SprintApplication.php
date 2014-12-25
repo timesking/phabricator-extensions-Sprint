@@ -25,7 +25,8 @@ final class SprintApplication extends PhabricatorApplication {
 
   public function getEventListeners() {
     return array(
-      new BurndownActionMenuEventListener()
+      new BurndownActionMenuEventListener(),
+      new SprintUIEventListener()
     );
   }
 
@@ -77,6 +78,9 @@ final class SprintApplication extends PhabricatorApplication {
                   'reorder/'
                   => 'SprintBoardReorderController',
               ),
+          ),
+          '/tag/' => array(
+              '(?P<slug>[^/]+)/sboard/' => 'SprintBoardViewController',
           ),
       );
     }

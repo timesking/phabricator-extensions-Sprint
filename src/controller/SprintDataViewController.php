@@ -37,11 +37,17 @@ final class SprintDataViewController extends SprintController {
           ->setErrors(array($e->getMessage()));
     }
 
+    $pid = $project->getID();
     $crumbs = $this->buildSprintApplicationCrumbs();
     $crumbs->addTextCrumb(
         $project->getName(),
-        '/project/view/'.$project->getID());
+        '/project/view/'.$pid);
     $crumbs->addTextCrumb(pht('Burndown'));
+    $crumbs->addAction(
+        id(new PHUIListItemView())
+            ->setName(pht('Sprint Board'))
+            ->setHref('/sprint/board/'.$pid)
+            ->setIcon('fa-columns'));
 
     return $this->buildApplicationPage(
         array(

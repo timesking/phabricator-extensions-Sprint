@@ -19,7 +19,6 @@ final class SprintTaskStoryPointsField extends ManiphestCustomField
         'name' => $this->getFieldName(),
         'description' => $this->getFieldDescription(),
       ));
-
     $this->setProxy($this->text_proxy);
   }
 
@@ -52,12 +51,14 @@ final class SprintTaskStoryPointsField extends ManiphestCustomField
 
      if ($this->getObject() instanceof ManiphestTask) {
        $id = $this->getObject()->getID();
-       $task = id(new ManiphestTaskQuery())
-           ->setViewer($viewer)
-           ->withIds(array($id))
-           ->needProjectPHIDs(true)
-           ->executeOne();
-       $project_phids = $task->getProjectPHIDs();
+       if ($id) {
+          $task = id(new ManiphestTaskQuery())
+             ->setViewer($viewer)
+             ->withIds(array($id))
+             ->needProjectPHIDs(true)
+             ->executeOne();
+          $project_phids = $task->getProjectPHIDs();
+       }
      }
 
       if (empty($project_phids)) {
