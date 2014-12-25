@@ -36,13 +36,24 @@ final class BurndownActionMenuEventListener extends PhabricatorEventListener {
     }
 
     $project = $event->getValue('object');
+    $projectid = $project->getId();
 
-    $view_uri = '/sprint/view/'.$project->getId();
+    $view_uri = '/sprint/view/'.$projectid;
+    $board_uri = '/sprint/board/'.$projectid;
 
-    return id(new PhabricatorActionView())
-      ->setIcon('fa-bar-chart-o')
-      ->setName(pht('View Burndown'))
-      ->setHref($view_uri);
+    $burndown = id(new PhabricatorActionView())
+        ->setIcon('fa-bar-chart-o')
+        ->setName(pht('View Burndown'))
+        ->setHref($view_uri);
+
+    $board = id(new PhabricatorActionView())
+        ->setIcon('fa-columns')
+        ->setName(pht('View Sprint Board'))
+        ->setHref($board_uri);
+
+    return array ($burndown, $board);
   }
+
+
 
 }

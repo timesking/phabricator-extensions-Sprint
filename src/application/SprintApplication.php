@@ -37,10 +37,6 @@ final class SprintApplication extends PhabricatorApplication {
 
   public function getRoutes() {
       return array(
-          '/project/' => array(
-              'view/(?P<id>[1-9]\d*)/'
-              => 'SprintProjectProfileController',
-          ),
           '/sprint/' => array(
               'edit/(?P<id>[1-9]\d*)/' => 'PhabricatorProjectEditMainController',
               '' => 'SprintListController',
@@ -81,9 +77,6 @@ final class SprintApplication extends PhabricatorApplication {
                   'reorder/'
                   => 'SprintBoardReorderController',
               ),
-          ),
-          '/tag/' => array(
-              '(?P<slug>[^/]+)/' => 'SprintProjectProfileController',
           ),
       );
     }
