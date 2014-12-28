@@ -124,7 +124,7 @@ final class SprintListController extends SprintController {
     $help = id(new PHUIBoxView())
         ->appendChild(phutil_tag('p', array(),
             "To have a project show up in this list, make sure it's name includes"
-            ."\"Sprint\" and then edit it to set the start and end date."
+            ."\"§\" and then edit it to set the start and end date."
         ))
         ->addMargin(PHUI::MARGIN_LARGE);
 
