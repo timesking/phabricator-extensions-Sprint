@@ -6,8 +6,7 @@ final class TasksTableView {
   private $viewer;
   private $request;
   private $tasks;
-  private $task_open_status_sum;
-  private $task_closed_status_sum;
+  private $taskpoints;
   private $query;
 
   public function setProject ($project) {
@@ -21,27 +20,25 @@ final class TasksTableView {
   }
 
   public function setRequest ($request) {
-    $this->request =  $request;
+    $this->request = $request;
     return $this;
   }
 
   public function setTasks ($tasks) {
-    $this->tasks =  $tasks;
+    $this->tasks = $tasks;
+    return $this;
+  }
+
+  public function setTaskPoints ($taskpoints) {
+    $this->taskpoints = $taskpoints;
     return $this;
   }
 
   public function setQuery ($query) {
-    $this->query =  $query;
+    $this->query = $query;
     return $this;
   }
 
-  public function getTaskOpenStatusSum () {
-    return $this->task_open_status_sum;
-  }
-
-  public function getTaskClosedStatusSum () {
-    return $this->task_closed_status_sum;
-  }
   /**
    * Format the tasks data for display on the page.
    *
@@ -117,6 +114,8 @@ final class TasksTableView {
   private function buildTasksTree($order, $reverse) {
     $edges = $this->query->getEdges($this->tasks);
     $map = $this->buildTaskMap($edges, $this->tasks);
+    $sprintpoints = id(new SprintPoints())
+        ->setTaskPoints($this->taskpoints);
 
         // We also collect the phids we need to fetch owner information
     $handle_phids = array();
@@ -126,7 +125,6 @@ final class TasksTableView {
     }
     $handles = $this->query->getViewerHandles($this->request, $handle_phids);
 
-    // Now we loop through the tasks, and add them to the output
     $output = array();
     $rows = array();
     foreach ($this->tasks as $task) {
@@ -138,7 +136,8 @@ final class TasksTableView {
         $blocked = true;
       }
 
-      $points = $this->getTaskPoints($task);
+      $points = $sprintpoints->getTaskPoints($task->getPHID());
+
       $row = $this->addTaskToTree($output, $blocked, $task, $handles, $points);
       list ($task, $cdate, $date_created, $udate, $last_update, $owner_link, $numpriority, $priority, $points, $status) = $row[0];
       $row['sort'] = $this->setSortOrder($row, $order, $task, $cdate, $udate, $owner_link, $numpriority, $points, $status);
@@ -226,14 +225,6 @@ final class TasksTableView {
     return $owner_link;
   }
 
-  private function getTaskPoints($task) {
-    $query = id(new SprintQuery())
-        ->setProject($this->project)
-        ->setViewer($this->viewer);
-    $points = $query->getStoryPointsForTask($task->getPHID());
-    return $points;
-  }
-
   private function getTaskCreatedDate($task) {
     $date_created = $task->getDateCreated();
     return $date_created;
@@ -259,8 +250,8 @@ final class TasksTableView {
     $date_created = phabricator_datetime($cdate, $this->viewer);
     $udate = $this->getTaskModifiedDate($task);
     $last_updated = phabricator_datetime($udate, $this->viewer);
-
-    $status = $this->setTaskStatus($task);
+    $sprintpoints = id(new SprintPoints());
+    $status = $sprintpoints->getTaskStatus($task);
 
     $owner_link = $this->setOwnerLink($handles, $task);
     $priority = $this->getPriority($task);
@@ -291,35 +282,4 @@ final class TasksTableView {
     return $output;
   }
 
-  private function setTaskStatus($task) {
-    $status = $task->getStatus();
-    return $status;
-  }
-
-  private function sumPointsbyStatus ($task) {
-    $stats = id(new SprintBuildStats());
-    $status = $this->setTaskStatus($task);
-    $points = $this->getTaskPoints($task);
-    if ($status == 'open') {
-      $this->task_open_status_sum = $stats->setTaskOpenStatusSum($this->task_open_status_sum, $points);
-    } elseif ($status == 'resolved') {
-      $this->task_closed_status_sum = $stats->setTaskClosedStatusSum($this->task_closed_status_sum, $points);
-    }
-    return;
-  }
-
-  public function setStatusPoints () {
-    foreach ($this->tasks as $task) {
-      $this->sumPointsbyStatus($task);
-    }
-   return;
-  }
-
-  public function getOpenStatusSum() {
-    return $this->task_open_status_sum;
-  }
-
-  public function getClosedStatusSum() {
-    return $this->task_closed_status_sum;
-  }
 }

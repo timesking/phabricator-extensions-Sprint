@@ -236,13 +236,19 @@ final class SprintBuildStats {
     return $data;
   }
 
-  public function setTaskOpenStatusSum ($task_open_status_sum, $points) {
-    $task_open_status_sum += $points;
-    return $task_open_status_sum;
-  }
-
-  public function setTaskClosedStatusSum ($task_closed_status_sum, $points) {
-    $task_closed_status_sum += $points;
-    return $task_closed_status_sum;
+  public function transposeArray($array) {
+    $transposed_array = array();
+    if ($array) {
+      foreach ($array as $row_key => $row) {
+        if (is_array($row) && !empty($row)) {
+          foreach ($row as $column_key => $element) {
+            $transposed_array[$column_key][$row_key] = $element;
+          }
+        } else {
+          $transposed_array[0][$row_key] = $row;
+        }
+      }
+    }
+    return $transposed_array;
   }
 }
