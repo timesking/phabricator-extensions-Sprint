@@ -10,7 +10,7 @@ abstract class SprintProjectCustomField extends PhabricatorProjectCustomField
 
   protected function isSprint() {
     $validator = new SprintValidator;
-    $is_sprint = call_user_func(array($validator, 'checkForSprint'),
+    $is_sprint = call_user_func(
         array($validator, 'shouldShowSprintFields'), $this->getObject());
     return $is_sprint;
   }
