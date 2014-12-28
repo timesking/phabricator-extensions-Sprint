@@ -5,7 +5,8 @@
  */
 
 final class SprintTaskStoryPointsField extends ManiphestCustomField
-  implements PhabricatorStandardCustomFieldInterface {
+  implements
+    PhabricatorStandardCustomFieldInterface {
 
   private $obj;
   private $text_proxy;

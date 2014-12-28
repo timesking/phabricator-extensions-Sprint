@@ -30,7 +30,8 @@ final class SprintQuery extends SprintDAO {
   }
 
   public function getAuxFields() {
-    $field_list = PhabricatorCustomField::getObjectFields($this->project, PhabricatorCustomField::ROLE_EDIT);
+    $field_list = PhabricatorCustomField::getObjectFields($this->project,
+        PhabricatorCustomField::ROLE_EDIT);
     $field_list->setViewer($this->viewer);
     $field_list->readFieldsFromStorage($this->project);
     $aux_fields = $field_list->getFields();
@@ -59,6 +60,7 @@ final class SprintQuery extends SprintDAO {
   }
 
   public function getStoryPointsForTask($task_phid)  {
+    $points = null;
     $object = new ManiphestCustomFieldStorage();
     $corecustomfield = $object->loadRawDataWhere('objectPHID= %s', $task_phid);
     if (!empty($corecustomfield)) {
@@ -68,9 +70,8 @@ final class SprintQuery extends SprintDAO {
     } else {
       $points = 0;
     }
-     return $points;
+    return $points;
   }
-
 
   public function getXactions($tasks) {
     $task_phids = mpull($tasks, 'getPHID');
@@ -103,6 +104,16 @@ final class SprintQuery extends SprintDAO {
     return $conn;
   }
 
+  public function getCustomFieldObj () {
+    $table = new ManiphestCustomFieldStorage();
+    return $table;
+  }
+
+  public function getCustomFieldConn () {
+    $conn = $this->getCustomFieldObj()->establishConnection('r');
+    return $conn;
+  }
+
   public function getJoins() {
 
     $joins = '';
@@ -110,6 +121,22 @@ final class SprintQuery extends SprintDAO {
       $joins = qsprintf(
           $this->getXactionConn(),
           'JOIN %T t ON x.objectPHID = t.phid
+          JOIN %T p ON p.src = t.phid AND p.type = %d AND p.dst = %s',
+          id(new ManiphestTask())->getTableName(),
+          PhabricatorEdgeConfig::TABLE_NAME_EDGE,
+          PhabricatorProjectObjectHasProjectEdgeType::EDGECONST,
+          $this->project_phid);
+    }
+    return $joins;
+  }
+
+  public function getCustomFieldJoins() {
+
+    $joins = '';
+    if ($this->project_phid) {
+      $joins = qsprintf(
+          $this->getCustomFieldConn(),
+          'JOIN %T t ON f.objectPHID = t.phid
           JOIN %T p ON p.src = t.phid AND p.type = %d AND p.dst = %s',
           id(new ManiphestTask())->getTableName(),
           PhabricatorEdgeConfig::TABLE_NAME_EDGE,
@@ -131,18 +158,31 @@ final class SprintQuery extends SprintDAO {
     return $data;
  }
 
+  public function getTaskData() {
+    $task_dao = new ManiphestCustomFieldStorage();
+    $data = queryfx_all(
+        $this->getCustomFieldConn(),
+        'SELECT f.* FROM %T f %Q',
+        $this->getCustomFieldObj()->getTableName(),
+        $this->getCustomFieldJoins());
+
+    $task_data = $task_dao->loadAllFromArray($data);
+    return $task_data;
+  }
+
   public function getEdges ($tasks) {
     // Load all edges of depends and depended on tasks
     $edges = id(new PhabricatorEdgeQuery())
         ->withSourcePHIDs(array_keys($tasks))
-        ->withEdgeTypes(array(PhabricatorEdgeConfig::TYPE_TASK_DEPENDS_ON_TASK, PhabricatorEdgeConfig::TYPE_TASK_DEPENDED_ON_BY_TASK))
+        ->withEdgeTypes(array(PhabricatorEdgeConfig::TYPE_TASK_DEPENDS_ON_TASK,
+            PhabricatorEdgeConfig::TYPE_TASK_DEPENDED_ON_BY_TASK))
         ->execute();
     return $edges;
   }
 
   public function getEvents($xactions) {
-    $scope_phids = array($this->project->getPHID());
-    $events = $this->extractEvents($xactions, $scope_phids);
+    $scope_phid = array($this->project->getPHID());
+    $events = $this->extractEvents($xactions, $scope_phid);
     return $events;
   }
 
@@ -220,24 +260,20 @@ final class SprintQuery extends SprintDAO {
     }
   }
 
-  public function extractEvents($xactions, array $scope_phids) {
+  public function extractEvents($xactions, $scope_phid) {
     assert_instances_of($xactions, 'ManiphestTransaction');
-
-    $scope_phids = array_fuse($scope_phids);
 
     $events = array();
     foreach ($xactions as $xaction) {
       $old = $xaction->getOldValue();
       $new = $xaction->getNewValue();
 
+      $event_type = $this->setXActionEventType ($xaction, $old, $new, $scope_phid);
 
-      $event_type = $this->setXActionEventType ($xaction, $old, $new, $scope_phids);
-
-      // If we found some kind of events that we care about, stick it in the
-      // list of events.
       if ($event_type !== null) {
         $events[] = array(
             'transactionPHID' => $xaction->getPHID(),
+            'objectPHID' => $xaction->getObjectPHID(),
             'epoch' => $xaction->getDateCreated(),
             'key'   => $xaction->getMetadataValue('customfield:key'),
             'type'  => $event_type,
@@ -246,7 +282,6 @@ final class SprintQuery extends SprintDAO {
       }
     }
 
-    // Sort all events chronologically.
     $events = isort($events, 'epoch');
 
     return $events;

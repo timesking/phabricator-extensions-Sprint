@@ -22,23 +22,20 @@ final class SprintApplicationTest extends SprintTestCase {
   public function testgetShortDescription() {
     $burndown_application = new SprintApplication;
     $description = $burndown_application->getShortDescription();
-    $this->assertEquals('Build burndowns', $description);
+    $this->assertEquals('Build Sprints', $description);
   }
 
   public function testgetEventListeners() {
     $burndown_application = new SprintApplication;
     $eventlistener = $burndown_application->getEventListeners();
     $this->assertInstanceOf('BurndownActionMenuEventListener', $eventlistener[0]);
+    $this->assertInstanceOf('SprintUIEventListener', $eventlistener[1]);
   }
 
   public function testgetRoutes() {
     $burndown_application = new SprintApplication;
     $routes = $burndown_application->getRoutes();
     $assertion = array(
-        '/project/' => array(
-            'view/(?P<id>[1-9]\d*)/'
-            => 'SprintProjectProfileController',
-        ),
         '/sprint/' => array(
             'edit/(?P<id>[1-9]\d*)/' => 'PhabricatorProjectEditMainController',
             '' => 'SprintListController',
@@ -81,8 +78,7 @@ final class SprintApplicationTest extends SprintTestCase {
             ),
         ),
         '/tag/' => array(
-            '(?P<slug>[^/]+)/' => 'SprintProjectProfileController',
-            '(?P<slug>[^/]+)/board/' => 'SprintBoardViewController',
+            '(?P<slug>[^/]+)/sboard/' => 'SprintBoardViewController',
         ),
     );
     $this->assertEquals($assertion, $routes);
